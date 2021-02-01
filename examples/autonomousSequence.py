@@ -127,17 +127,16 @@ def start_position_printing(scf):
 def run_sequence(scf, sequence):
     cf = scf.cf
 
-    cf.param.set_value('flightmode.posSet', '1')
-
     for position in sequence:
         print('Setting position {}'.format(position))
         for i in range(50):
-            cf.commander.send_setpoint(position[1], position[0],
-                                       position[3],
-                                       int(position[2] * 1000))
+            cf.commander.send_position_setpoint(position[0],
+                                                position[1],
+                                                position[2],
+                                                position[3])
             time.sleep(0.1)
 
-    cf.commander.send_setpoint(0, 0, 0, 0)
+    cf.commander.send_stop_setpoint()
     # Make sure that the last packet leaves before the link is closed
     # since the message queue is not flushed before closing
     time.sleep(0.1)

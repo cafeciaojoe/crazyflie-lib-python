@@ -99,15 +99,18 @@ class Cloader:
         pk.data = (target_id, 0xFF)
         self.link.send_packet(pk)
 
-        pk = self.link.receive_packet(1)
-
-        while ((not pk or pk.header != 0xFF or
-                struct.unpack('<BB', pk.data[0:2]) != (target_id, 0xFF)
-                ) and retry_counter >= 0):
+        got_answer = False
+        while(not got_answer and retry_counter >= 0):
             pk = self.link.receive_packet(1)
-            retry_counter -= 1
+            if pk and pk.header == 0xFF:
+                try:
+                    data = struct.unpack('<BB', pk.data[0:2])
+                    got_answer = data == (target_id, 0xFF)
+                except struct.error:
+                    # Failed unpacking, retry
+                    pass
 
-        if pk:
+        if got_answer:
             new_address = (0xb1,) + struct.unpack('<BBBB', pk.data[2:6][::-1])
 
             # The reset packet arrival cannot be checked.
@@ -378,7 +381,14 @@ class Cloader:
             pk.data = struct.pack('<BBHHH', addr, 0x18, page_buffer,
                                   target_page, page_count)
             self.link.send_packet(pk)
-            pk = self.link.receive_packet(1)
+
+            # Timeout for writing to flash is raised from 1s (used elsewhere
+            # in this module) to 2.5s because it may take more than a second
+            # to erase a page on the STM32F405.
+            #
+            # See https://github.com/bitcraze/crazyflie-lib-python/issues/98
+            # for more details.
+            pk = self.link.receive_packet(2.5)
             retry_counter -= 1
 
         if retry_counter < 0:
