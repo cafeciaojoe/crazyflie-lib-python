@@ -46,13 +46,28 @@ uri = 'radio://0/80/2M'
 # Change the sequence according to your setup
 #             x    y    z  YAW
 sequence = [
-    (2.5, 2.5, 1.2, 0),
-    (1.5, 2.5, 1.2, 0),
-    (2.5, 2.0, 1.2, 0),
-    (3.5, 2.5, 1.2, 0),
-    (2.5, 3.0, 1.2, 0),
-    (2.5, 2.5, 1.2, 0),
-    (2.5, 2.5, 0.4, 0),
+
+
+
+    (.1, 0, 0, 0),
+    (.2, 0, 0, 0),
+    (.3, 0, 0, 0),
+    (.4, 0, 0, 0),
+    (.5, 0, 0, 0),
+    (.6, 0, 0, 0),
+    (.7, 0, 0, 0),
+    (.8, 0, 0, 0),
+    (.9, 0, 0, 0),
+    (1.0, 0, 0, 0),
+    (1.1, 0, 0, 0),
+    (1.2, 0, 0, 0),
+    (1.3, 0, 0, 0),
+    (1.4, 0, 0, 0),
+    (1.5, 0, 0, 0),
+
+    (.1, 0, 0, 0),
+
+
 ]
 
 
@@ -130,11 +145,11 @@ def run_sequence(scf, sequence):
     for position in sequence:
         print('Setting position {}'.format(position))
         for i in range(50):
-            cf.commander.send_position_setpoint(position[0],
-                                                position[1],
+            cf.commander.send_position_setpoint(position[1],
                                                 position[2],
+                                                position[0]+.4,
                                                 position[3])
-            time.sleep(0.1)
+            time.sleep(.05)
 
     cf.commander.send_stop_setpoint()
     # Make sure that the last packet leaves before the link is closed
