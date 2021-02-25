@@ -29,6 +29,7 @@ USB driver for the Crazyradio USB dongle.
 """
 import logging
 import os
+import platform
 
 import usb
 
@@ -67,7 +68,7 @@ except Exception:
     pyusb1 = False
 
 
-def _find_devices():
+def _find_devices(serial=None):
     """
     Returns a list of CrazyRadio devices currently connected to the computer
     """
@@ -76,6 +77,8 @@ def _find_devices():
     if pyusb1:
         for d in usb.core.find(idVendor=0x1915, idProduct=0x7777, find_all=1,
                                backend=pyusb_backend):
+            if serial is not None and serial == d.serial_number:
+                return d
             ret.append(d)
     else:
         busses = usb.busses()
@@ -83,9 +86,15 @@ def _find_devices():
             for device in bus.devices:
                 if device.idVendor == CRADIO_VID:
                     if device.idProduct == CRADIO_PID:
+                        if serial == device.serial_number:
+                            return device
                         ret += [device, ]
 
     return ret
+
+
+def get_serials():
+    return tuple(map(lambda d: d.serial_number, _find_devices()))
 
 
 class _radio_ack:
@@ -107,7 +116,7 @@ class Crazyradio:
     P_M6DBM = 2
     P_0DBM = 3
 
-    def __init__(self, device=None, devid=0):
+    def __init__(self, device=None, devid=0, serial=None):
         """ Create object and scan for USB dongle if no device is supplied """
 
         self.current_channel = None
@@ -116,9 +125,15 @@ class Crazyradio:
 
         if device is None:
             try:
-                device = _find_devices()[devid]
+                if serial is None:
+                    device = _find_devices()[devid]
+                else:
+                    device = _find_devices(serial)
             except Exception:
-                raise Exception('Cannot find a Crazyradio Dongle')
+                if serial is None:
+                    raise Exception('Cannot find a Crazyradio Dongle')
+                else:
+                    raise Exception('Cannot find Crazyradio {}'.format(serial))
 
         self.dev = device
 
@@ -140,6 +155,8 @@ class Crazyradio:
             logger.warning('You should update to Crazyradio firmware V0.4+')
 
         # Reset the dongle to power up settings
+        if platform.system() == 'Linux':
+            self.handle.reset()
         self.set_data_rate(self.DR_2MPS)
         self.set_channel(2)
         self.arc = -1
@@ -155,10 +172,9 @@ class Crazyradio:
         if (pyusb1 is False):
             if self.handle:
                 self.handle.releaseInterface()
-                self.handle.reset()
         else:
             if self.dev:
-                self.dev.reset()
+                usb.util.dispose_resources(self.dev)
 
         self.handle = None
         self.dev = None
@@ -265,10 +281,10 @@ class Crazyradio:
                     result = result + (i,)
             return result
 
-    # Data transferts
+    # Data transfers
     def send_packet(self, dataOut):
         """ Send a packet and receive the ack from the radio dongle
-            The ack contains information about the packet transmition
+            The ack contains information about the packet transmission
             and a data payload if the ack packet contained any """
         ackIn = None
         data = None

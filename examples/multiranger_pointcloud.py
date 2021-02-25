@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 #     ||          ____  _ __
@@ -37,8 +37,8 @@ Crazyflie can then be controlled by using keyboard input:
 
 There's additional setting for (see constants below):
  * Plotting the downwards sensor
- * Plotting the estimated Crazyflie postition
- * Max threashold for sensors
+ * Plotting the estimated Crazyflie position
+ * Max threshold for sensors
  * Speed factor that set's how fast the Crazyflie moves
 
 The demo is ended by either closing the graph window.
@@ -69,7 +69,8 @@ try:
 except ImportError:
     pass
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
+
 logging.basicConfig(level=logging.INFO)
 
 URI = 'radio://0/80/2M'
@@ -81,16 +82,16 @@ if len(sys.argv) > 1:
 PLOT_CF = False
 # Enable plotting of down sensor
 PLOT_SENSOR_DOWN = False
-# Set the sensor threashold (in mm)
+# Set the sensor threshold (in mm)
 SENSOR_TH = 2000
 # Set the speed factor for moving and rotating
 SPEED_FACTOR = 0.3
 
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, URI):
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
 
         self.resize(700, 500)
         self.setWindowTitle('Multi-ranger point cloud')
@@ -358,7 +359,7 @@ class Canvas(scene.SceneCanvas):
 
 
 if __name__ == '__main__':
-    appQt = QtGui.QApplication(sys.argv)
+    appQt = QtWidgets.QApplication(sys.argv)
     win = MainWindow(URI)
     win.show()
     appQt.exec_()

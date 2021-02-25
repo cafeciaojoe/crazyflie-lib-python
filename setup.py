@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='cflib',
-    version='0.1.7',
+    version='0.1.13.1',
     packages=find_packages(exclude=['examples', 'tests']),
 
     description='Crazyflie python driver',
@@ -24,5 +24,8 @@ setup(
 
     keywords='driver crazyflie quadcopter',
 
-    install_requires='pyusb>=1.0.0b2',
+    install_requires=[
+        'pyusb>=1.0.0b2',
+        'opencv-python-headless==4.5.1.48'
+    ]
 )
