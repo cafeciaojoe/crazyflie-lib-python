@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='cflib',
-    version='0.1.13.1',
+    version='0.1.14.2',
     packages=find_packages(exclude=['examples', 'tests']),
 
     description='Crazyflie python driver',
@@ -27,5 +27,12 @@ setup(
     install_requires=[
         'pyusb>=1.0.0b2',
         'opencv-python-headless==4.5.1.48'
-    ]
+    ],
+
+    # $ pip install -e .[dev]
+    extras_require={
+        'dev': [
+            'pre-commit'
+        ],
+    },
 )

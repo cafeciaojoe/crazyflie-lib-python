@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 #     ||          ____  _ __
@@ -6,7 +7,7 @@
 #  +------+    / /_/ / / /_/ /__/ /  / /_/ / / /_/  __/
 #   ||  ||    /_____/_/\__/\___/_/   \__,_/ /___/\___/
 #
-#  Copyright (C) 2014 Bitcraze AB
+#  Copyright (C) 2021 Bitcraze AB
 #
 #  Crazyflie Nano Quadcopter Client
 #
@@ -19,20 +20,30 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
+#
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-#  MA  02110-1301, USA.
-"""
-Simple example that scans for available Crazyflies and lists them.
-"""
-import cflib.crtp
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>
+import os
+import sys
 
-# Initiate the low level drivers
-cflib.crtp.init_drivers()
 
-print('Scanning interfaces for Crazyflies...')
-available = cflib.crtp.scan_interfaces()
-print('Crazyflies found:')
-for i in available:
-    print(i[0])
+def uri_from_env(env='CFLIB_URI', default='radio://0/80/2M/E7E7E7E7E7') -> str:
+    try:
+        return os.environ[env]
+    except KeyError:
+        return default
+
+
+def address_from_env(env='CFLIB_URI', default=0xE7E7E7E7E7) -> int:
+    try:
+        uri = os.environ[env]
+    except KeyError:
+        return default
+
+    # Get the address part of the uri
+    address = uri.rsplit('/', 1)[-1]
+    try:
+        return int(address, 16)
+    except ValueError:
+        print('address is not hexadecimal! (%s)' % address, file=sys.stderr)
+        return None
