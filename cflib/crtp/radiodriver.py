@@ -298,11 +298,11 @@ class RadioDriver(CRTPDriver):
 
         # Open the USB dongle
         if not re.search('^radio://([0-9a-fA-F]+)((/([0-9]+))'
-                         '((/(250K|1M|2M))?(/([A-F0-9]+))?)?)?$', uri):
+                         '((/(250K|1M|2M))?(/([A-F0-9]+))?)?)?(\\?.+)?$', uri):
             raise WrongUriType('Wrong radio URI format!')
 
         uri_data = re.search('^radio://([0-9a-fA-F]+)((/([0-9]+))'
-                             '((/(250K|1M|2M))?(/([A-F0-9]+))?)?)?$', uri)
+                             '((/(250K|1M|2M))?(/([A-F0-9]+))?)?)?(\\?.+)?$', uri)
 
         if len(uri_data.group(1)) < 10 and uri_data.group(1).isdigit():
             devid = int(uri_data.group(1))
@@ -328,30 +328,32 @@ class RadioDriver(CRTPDriver):
 
         address = DEFAULT_ADDR_A
         if uri_data.group(9):
-            addr = str(uri_data.group(9))
+            # We make sure to pad the address with zeros if we do not have the
+            # correct length.
+            addr = '{:0>10}'.format(uri_data.group(9))
             new_addr = struct.unpack('<BBBBB', binascii.unhexlify(addr))
             address = new_addr
 
         return devid, channel, datarate, address
 
-    def receive_packet(self, time=0):
+    def receive_packet(self, wait=0):
         """
         Receive a packet though the link. This call is blocking but will
         timeout and return None if a timeout is supplied.
         """
-        if time == 0:
+        if wait == 0:
             try:
                 return self.in_queue.get(False)
             except queue.Empty:
                 return None
-        elif time < 0:
+        elif wait < 0:
             try:
                 return self.in_queue.get(True)
             except queue.Empty:
                 return None
         else:
             try:
-                return self.in_queue.get(True, time)
+                return self.in_queue.get(True, wait)
             except queue.Empty:
                 return None
 
@@ -406,7 +408,7 @@ class RadioDriver(CRTPDriver):
         for link in links:
             one_to_scan = {}
             uri_data = re.search('^radio://([0-9]+)((/([0-9]+))'
-                                 '(/(250K|1M|2M))?)?$',
+                                 '(/(250K|1M|2M))?)?',
                                  link)
 
             one_to_scan['channel'] = int(uri_data.group(4))
@@ -457,7 +459,8 @@ class RadioDriver(CRTPDriver):
         found = []
 
         if address is not None:
-            addr = '{:X}'.format(address)
+            # We make sure to pad the address with zeroes to get correct length
+            addr = '{:0>10X}'.format(address)
             new_addr = struct.unpack('<BBBBB', binascii.unhexlify(addr))
             self._radio.set_address(new_addr)
 
