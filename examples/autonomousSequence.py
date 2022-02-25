@@ -149,11 +149,11 @@ def run_sequence(scf, sequence):
     for position in sequence:
         print('Setting position {}'.format(position))
         for i in range(50):
-            cf.commander.send_position_setpoint(position[0],
-                                                position[1],
+            cf.commander.send_position_setpoint(position[1],
                                                 position[2],
+                                                position[0]+.4,
                                                 position[3])
-            time.sleep(0.1)
+            time.sleep(.05)
 
     cf.commander.send_stop_setpoint()
     # Make sure that the last packet leaves before the link is closed
